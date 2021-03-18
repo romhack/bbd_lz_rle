@@ -28,7 +28,11 @@ Options:
   -o, --out_name TEXT  Output packed file name.
 ```
 
-For usage details see additional files in [release](https://github.com/romhack/bbd_lz_rle/releases/latest) archive. 
+For usage details see additional files in [release](https://github.com/romhack/bbd_lz_rle/releases/latest) archive.   
+Install:
+```
+pip install -r requirements.txt
+```
   
 A tool for compressing and decompressing data in GameBoy Advance games: 
  - 1606 - B-Densetsu! Battle B-Daman - Moero! B-Tamashii! (J)
