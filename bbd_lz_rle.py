@@ -110,22 +110,28 @@ def deserialize(stream):
         assert len(bstr) >= n, "Compressed stream ended prematurely"
         return bstr
 
-    flag = ord(read_safe(1))
-    if flag & 0x80:  # compression
-        chunk_size = (flag & 0x7F) >> 2
-        plain_len = ((flag & 3) << 8) + ord(read_safe(1))
-        if chunk_size == MAX_CHUNK_LEN:  # lz coding
-            lz_offs = int.from_bytes(read_safe(2), "little")
-            return [{"method": "lz", "len": plain_len, "offs": lz_offs}] + deserialize(stream)
-        # rle coding
-        chunk = list(read_safe(chunk_size + 1))
-        return [{"method": "rle", "len": plain_len, "chunk": chunk}] + deserialize(stream)
-    # raw method
-    plain_len = flag & 0x7f
-    if plain_len != 0:
-        return [{"method": "raw", "data": list(read_safe(plain_len))}] + deserialize(stream)
-    # end of compression found
-    return []
+    result = []
+    while True:
+        flag = ord(read_safe(1))
+        if flag & 0x80:  # compression
+            chunk_size = (flag & 0x7F) >> 2
+            plain_len = ((flag & 3) << 8) + ord(read_safe(1))
+            if chunk_size == MAX_CHUNK_LEN:  # lz coding
+                lz_offs = int.from_bytes(read_safe(2), "little")
+                result.append(
+                    {"method": "lz", "len": plain_len, "offs": lz_offs})
+            else:  # rle coding
+                chunk = list(read_safe(chunk_size + 1))
+                result.append(
+                    {"method": "rle", "len": plain_len, "chunk": chunk})
+        else:  # raw method
+            plain_len = flag & 0x7f
+            if plain_len != 0:
+                result.append(
+                    {"method": "raw", "data": list(read_safe(plain_len))})
+            else:  # end of compression found
+                break
+    return result
 
 
 def decode(commands):
